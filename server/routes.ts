@@ -92,6 +92,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Clear all events
+  app.delete("/api/events", async (req, res) => {
+    try {
+      const events = await storage.getAllEvents();
+      let deletedCount = 0;
+      
+      for (const event of events) {
+        const deleted = await storage.deleteEvent(event.id);
+        if (deleted) {
+          deletedCount++;
+        }
+      }
+      
+      res.json({ 
+        message: `Successfully deleted ${deletedCount} events`,
+        deletedCount 
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to clear all events" });
+    }
+  });
+
   // Helper function to calculate nth date
   function calculateNthDate(
     nthOccurrence: number,

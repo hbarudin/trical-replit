@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import { Calendar, CalendarDays, Link, Edit, Trash2, Search } from "lucide-react";
+import { Calendar, CalendarDays, Link, Edit, Trash2, Search, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -49,9 +49,45 @@ export default function EventsList({
     },
   });
 
+  const clearAllEventsMutation = useMutation({
+    mutationFn: async () => {
+      await apiRequest("DELETE", "/api/events");
+    },
+    onSuccess: (data: any) => {
+      toast({
+        title: "Success",
+        description: `All events cleared successfully! Deleted ${data.deletedCount} events.`,
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+      onEventDeleted();
+    },
+    onError: () => {
+      toast({
+        title: "Error", 
+        description: "Failed to clear all events. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleDeleteEvent = (eventId: string) => {
     if (confirm("Are you sure you want to delete this event?")) {
       deleteEventMutation.mutate(eventId);
+    }
+  };
+
+  const handleClearAllEvents = () => {
+    if (events.length === 0) {
+      toast({
+        title: "No Events",
+        description: "There are no events to clear.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (confirm(`Are you sure you want to delete all ${events.length} events? This action cannot be undone.`)) {
+      clearAllEventsMutation.mutate();
     }
   };
 
@@ -166,6 +202,16 @@ export default function EventsList({
             </Select>
             <Button variant="outline" size="icon" data-testid="button-search">
               <Search className="h-4 w-4" />
+            </Button>
+            <Button 
+              variant="destructive" 
+              size="sm" 
+              onClick={handleClearAllEvents}
+              disabled={clearAllEventsMutation.isPending || events.length === 0}
+              data-testid="button-clear-all"
+            >
+              <Trash className="h-4 w-4 mr-2" />
+              Clear All
             </Button>
           </div>
         </div>
