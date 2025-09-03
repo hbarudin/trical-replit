@@ -51,7 +51,8 @@ export default function EventsList({
 
   const clearAllEventsMutation = useMutation({
     mutationFn: async () => {
-      await apiRequest("DELETE", "/api/events");
+      const response = await apiRequest("DELETE", "/api/events");
+      return await response.json();
     },
     onSuccess: (data: any) => {
       toast({
@@ -158,7 +159,7 @@ export default function EventsList({
     }
     
     if (event.dateType === "relative") {
-      const referenceEvent = events.find(e => e.id === event.relativeEventId);
+      const referenceEvent = events.find(e => e.title === event.relativeEventName);
       const pattern = `${event.relativePeriod} ${event.relativeUnit} ${event.relativeDirection} ${referenceEvent ? referenceEvent.title : 'reference event'}`;
       return calculatedDate ? `${calculatedDate.toLocaleDateString()} (${pattern})` : pattern;
     }
