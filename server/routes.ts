@@ -424,17 +424,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           // Handle different date types
           if (eventData.dateType === 'fixed') {
-            eventData.startDate = record.startDate || record['Start Date'] || null;
-            eventData.endDate = record.endDate || record['End Date'] || null;
+            // Clean and validate date strings
+            const cleanDate = (dateStr: any) => {
+              if (!dateStr || dateStr === '') return null;
+              const cleaned = dateStr.toString().trim();
+              return cleaned === '' ? null : cleaned;
+            };
+            
+            eventData.startDate = cleanDate(record.startDate || record['Start Date']);
+            eventData.endDate = cleanDate(record.endDate || record['End Date']);
           } else if (eventData.dateType === 'nth') {
-            eventData.nthOccurrence = parseInt(record.nthOccurrence || record['Nth Occurrence'] || '1');
-            eventData.dayOfWeek = parseInt(record.dayOfWeek || record['Day of Week'] || '1');
-            eventData.month = parseInt(record.month || record.Month || '1');
-            eventData.baseYear = parseInt(record.baseYear || record['Base Year'] || new Date().getFullYear().toString());
+            const nthValue = parseInt(record.nthOccurrence || record['Nth Occurrence'] || '1');
+            eventData.nthOccurrence = (nthValue >= -1 && nthValue <= 4) ? nthValue : 1;
+            
+            const dayValue = parseInt(record.dayOfWeek || record['Day of Week'] || '0');
+            eventData.dayOfWeek = (dayValue >= 0 && dayValue <= 6) ? dayValue : 0;
+            
+            const monthValue = parseInt(record.month || record.Month || '1');
+            eventData.month = (monthValue >= 1 && monthValue <= 12) ? monthValue : 1;
+            
+            const yearValue = parseInt(record.baseYear || record['Base Year'] || new Date().getFullYear().toString());
+            eventData.baseYear = (yearValue >= 2020 && yearValue <= 2050) ? yearValue : new Date().getFullYear();
           } else if (eventData.dateType === 'relative') {
-            eventData.relativePeriod = parseInt(record.relativePeriod || record['Relative Period'] || '1');
-            eventData.relativeUnit = record.relativeUnit || record['Relative Unit'] || 'days';
-            eventData.relativeDirection = record.relativeDirection || record['Relative Direction'] || 'before';
+            const periodValue = parseInt(record.relativePeriod || record['Relative Period'] || '1');
+            eventData.relativePeriod = periodValue > 0 ? periodValue : 1;
+            
+            // Handle singular/plural unit conversion
+            let unit = (record.relativeUnit || record['Relative Unit'] || 'days').toLowerCase();
+            const unitMap: { [key: string]: string } = {
+              'day': 'days',
+              'week': 'weeks', 
+              'month': 'months',
+              'year': 'years',
+              'days': 'days',
+              'weeks': 'weeks',
+              'months': 'months', 
+              'years': 'years'
+            };
+            eventData.relativeUnit = unitMap[unit] || 'days';
+            
+            eventData.relativeDirection = (record.relativeDirection || record['Relative Direction'] || 'before').toLowerCase();
             eventData.relativeEventName = record.relativeEventName || record['Relative Event Name'] || record.relativeEventId || record['Relative Event ID'] || '';
           }
 
