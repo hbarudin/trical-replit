@@ -79,6 +79,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Clear all events
+  app.delete("/api/clear-events", async (req, res) => {
+    console.log("DELETE /api/clear-events route hit");
+    try {
+      const events = await storage.getAllEvents();
+      console.log(`Found ${events.length} events to delete`);
+      let deletedCount = 0;
+      
+      for (const event of events) {
+        const deleted = await storage.deleteEvent(event.id);
+        if (deleted) {
+          deletedCount++;
+        }
+      }
+      
+      console.log(`Successfully deleted ${deletedCount} events`);
+      res.json({ 
+        message: `Successfully deleted ${deletedCount} events`,
+        deletedCount 
+      });
+    } catch (error) {
+      console.error("Error in DELETE /api/events/clear:", error);
+      res.status(500).json({ message: "Failed to clear all events" });
+    }
+  });
+
   // Delete event
   app.delete("/api/events/:id", async (req, res) => {
     try {
@@ -89,28 +115,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(204).send();
     } catch (error) {
       res.status(500).json({ message: "Failed to delete event" });
-    }
-  });
-
-  // Clear all events
-  app.delete("/api/events", async (req, res) => {
-    try {
-      const events = await storage.getAllEvents();
-      let deletedCount = 0;
-      
-      for (const event of events) {
-        const deleted = await storage.deleteEvent(event.id);
-        if (deleted) {
-          deletedCount++;
-        }
-      }
-      
-      res.json({ 
-        message: `Successfully deleted ${deletedCount} events`,
-        deletedCount 
-      });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to clear all events" });
     }
   });
 

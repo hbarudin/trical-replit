@@ -51,7 +51,7 @@ export default function EventsList({
 
   const clearAllEventsMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest("DELETE", "/api/events");
+      const response = await apiRequest("DELETE", "/api/clear-events");
       return await response.json();
     },
     onSuccess: (data: any) => {
