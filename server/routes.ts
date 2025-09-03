@@ -445,6 +445,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
             
             const yearValue = parseInt(record.baseYear || record['Base Year'] || new Date().getFullYear().toString());
             eventData.baseYear = (yearValue >= 2020 && yearValue <= 2050) ? yearValue : new Date().getFullYear();
+            
+            console.log(`Row ${i + 1}: Nth event data:`, {
+              nthOccurrence: eventData.nthOccurrence,
+              dayOfWeek: eventData.dayOfWeek,
+              month: eventData.month,
+              baseYear: eventData.baseYear
+            });
           } else if (eventData.dateType === 'relative') {
             const periodValue = parseInt(record.relativePeriod || record['Relative Period'] || '1');
             eventData.relativePeriod = periodValue > 0 ? periodValue : 1;

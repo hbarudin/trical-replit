@@ -122,7 +122,7 @@ export default function EventsList({
   };
 
   const formatEventDate = (event: Event) => {
-    if (event.dateType === "fixed" && event.startDate && event.endDate) {
+    if (event.dateType === "fixed" && event.startDate) {
       // Handle date strings properly to avoid timezone issues
       const formatDateString = (dateValue: any) => {
         if (typeof dateValue === 'string') {
@@ -136,8 +136,14 @@ export default function EventsList({
       };
       
       const start = formatDateString(event.startDate);
-      const end = formatDateString(event.endDate);
-      return start === end ? start : `${start} - ${end}`;
+      
+      if (event.endDate) {
+        const end = formatDateString(event.endDate);
+        return start === end ? start : `${start} - ${end}`;
+      } else {
+        // Single day event
+        return start;
+      }
     }
     
     // Try to calculate the actual date
