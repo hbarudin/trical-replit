@@ -81,10 +81,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Clear all events
   app.delete("/api/clear-events", async (req, res) => {
-    console.log("DELETE /api/clear-events route hit");
     try {
       const events = await storage.getAllEvents();
-      console.log(`Found ${events.length} events to delete`);
       let deletedCount = 0;
       
       for (const event of events) {
@@ -94,13 +92,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      console.log(`Successfully deleted ${deletedCount} events`);
       res.json({ 
         message: `Successfully deleted ${deletedCount} events`,
         deletedCount 
       });
     } catch (error) {
-      console.error("Error in DELETE /api/events/clear:", error);
       res.status(500).json({ message: "Failed to clear all events" });
     }
   });
@@ -446,12 +442,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const yearValue = parseInt(record.baseYear || record['Base Year'] || new Date().getFullYear().toString());
             eventData.baseYear = (yearValue >= 2020 && yearValue <= 2050) ? yearValue : new Date().getFullYear();
             
-            console.log(`Row ${i + 1}: Nth event data:`, {
-              nthOccurrence: eventData.nthOccurrence,
-              dayOfWeek: eventData.dayOfWeek,
-              month: eventData.month,
-              baseYear: eventData.baseYear
-            });
           } else if (eventData.dateType === 'relative') {
             const periodValue = parseInt(record.relativePeriod || record['Relative Period'] || '1');
             eventData.relativePeriod = periodValue > 0 ? periodValue : 1;
