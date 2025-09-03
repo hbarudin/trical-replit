@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { pgTable, uuid, varchar, text, timestamp, integer, pgEnum } from "drizzle-orm/pg-core";
 
 // Event interface for localStorage-based storage
 export interface Event {
@@ -60,3 +61,37 @@ export const insertEventSchema = z.object({
 });
 
 export type InsertEvent = z.infer<typeof insertEventSchema>;
+
+// Drizzle enums
+export const dateTypeEnum = pgEnum('date_type', ['fixed', 'nth', 'relative']);
+export const relativeUnitEnum = pgEnum('relative_unit', ['days', 'weeks', 'months', 'years']);
+export const relativeDirectionEnum = pgEnum('relative_direction', ['before', 'after']);
+
+// Drizzle table definition
+export const eventsTable = pgTable('events', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  title: varchar('title', { length: 255 }).notNull(),
+  description: text('description'),
+  
+  // Date type: 'fixed', 'nth', 'relative'
+  dateType: dateTypeEnum('date_type').notNull(),
+  
+  // For fixed dates
+  startDate: timestamp('start_date'),
+  endDate: timestamp('end_date'),
+  
+  // For nth dates
+  nthOccurrence: integer('nth_occurrence'), // 1, 2, 3, 4, -1 (for last)
+  dayOfWeek: integer('day_of_week'), // 0-6 (Sunday to Saturday)
+  month: integer('month'), // 1-12
+  baseYear: integer('base_year'), // base year for nth date calculations
+  
+  // For relative dates
+  relativePeriod: integer('relative_period'), // number of units
+  relativeUnit: relativeUnitEnum('relative_unit'),
+  relativeDirection: relativeDirectionEnum('relative_direction'),
+  relativeEventName: varchar('relative_event_name', { length: 255 }), // Changed from ID to name
+  
+  // Metadata
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
